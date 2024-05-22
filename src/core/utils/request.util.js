@@ -2,7 +2,9 @@ import { URL } from 'node:url';
 import { IncomingMessage } from 'node:http';
 import { requestMemoize } from './memoize.util.js';
 
-export const getBodyAsText = requestMemoize(collectRequestBody);
+export const getBodyAsText = requestMemoize(async (req) => {
+  return collectRequestBody(req);
+});
 
 async function collectRequestBody(req) {
   return new Promise((resolve, reject) => {

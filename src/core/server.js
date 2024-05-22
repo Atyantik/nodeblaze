@@ -1,3 +1,4 @@
+import { brotliDecompress } from "./utils/compress.util.js";
 import { corsConfig, setCORSHeaders } from "./utils/cors.util.js";
 import { getFormData } from "./utils/form.util.js";
 import {
@@ -19,24 +20,35 @@ import { finished } from "node:stream/promises";
 
 const writeResponse = async (httpRes, response) => {
   httpRes.writeHead(response.status, Object.fromEntries(response.headers));
-
   if (response?.body instanceof ReadableStream) {
-    // Convert the web ReadableStream to Node.js Readable stream
     const nodeReadableStream = Readable.fromWeb(response.body);
 
-    // Pipe the converted stream to the response
+    nodeReadableStream.on('error', (error) => {
+      httpRes.writeHead(500);
+      httpRes.end('Error processing ReadableStream');
+    });
+
     nodeReadableStream.pipe(httpRes);
 
-    // Ensure the stream is properly finished
-    await finished(nodeReadableStream);
+    await finished(nodeReadableStream).catch(error => {
+      console.error('Stream finishing error:', error);
+      httpRes.end();
+    });
+
   } else if (response?.body instanceof Readable) {
-    // Directly pipe Node.js Readable stream to the response
+    response.body.on('error', (error) => {
+      console.error('Error with Node.js Readable:', error);
+      httpRes.writeHead(500);
+      httpRes.end('Error processing Node.js Readable');
+    });
+
     response.body.pipe(httpRes);
 
-    // Ensure the stream is properly finished
-    await finished(response.body);
+    await finished(response.body).catch(error => {
+      console.error('Stream finishing error:', error);
+      httpRes.end();
+    });
   } else {
-    // For non-stream responses, directly end the response with the body
     httpRes.end(response.body);
   }
 };
@@ -166,7 +178,7 @@ export const run = async (routes, options) => {
               ]);
               resObj = await cacheResponseObject(requestId, resObj);
             } catch (ex) {
-              console.log(ex);
+              console.error(ex);
               // On error, it means two things here, either the handler failed,
               // or the caching failed. Either way, we need to remove the cache
               // to avoid serving stale data
@@ -240,6 +252,10 @@ export const run = async (routes, options) => {
   server.timeout = 60000;
   server.headersTimeout = 0;
   server.keepAliveTimeout = 60000;
+
+  server.on("error", (err) => {
+    console.error("Server error:", err);
+  });
 
   server.listen(options?.port || 3000, options?.hostname || "localhost", () => {
     console.log(

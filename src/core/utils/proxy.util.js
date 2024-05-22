@@ -147,6 +147,7 @@ export const proxyRoute = (path, proxyUrl, options) => ({
       // this won't be necessary
       const responseText = await response.text();
       const responseHeaders = new Headers(response.headers);
+      responseHeaders.delete('transfer-encoding');
       responseHeaders.set("content-encoding", ENCODINGS.IDENTITY);
       responseHeaders.set("content-length", responseText.length.toString());
       response = new Response(responseText, {
