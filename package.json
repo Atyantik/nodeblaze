@@ -1,0 +1,28 @@
+{
+  "name": "nodeblaze",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "An ultra-efficient API proxy built on NodeJS, designed for top-tier performance and scalability. Tailored for developers who demand speed and reliability, NodeBlaze optimizes your API interactions with advanced caching and minimal overhead.",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node with-memory.js --entry src/index.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+  },
+  "keywords": [
+    "proxy",
+    "node",
+    "api",
+    "graphql"
+  ],
+  "author": "Tirth Bodawala <tirthbodawala@atyantik.com>",
+  "license": "ISC",
+  "dependencies": {
+    "lru-cache": "^10.2.2",
+    "urlpattern-polyfill": "^10.0.0",
+    "xxhashjs": "^0.2.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}
