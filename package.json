@@ -18,6 +18,8 @@
   "author": "Tirth Bodawala <tirthbodawala@atyantik.com>",
   "license": "ISC",
   "dependencies": {
+    "busboy": "^1.6.0",
+    "dotenv": "^16.4.5",
     "lru-cache": "^10.2.2",
     "urlpattern-polyfill": "^10.0.0",
     "xxhashjs": "^0.2.2"

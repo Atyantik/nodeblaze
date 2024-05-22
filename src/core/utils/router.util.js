@@ -1,5 +1,5 @@
 import { URLPattern } from "urlpattern-polyfill/urlpattern";
-import getFullUrl from "./request.util.js";
+import { getFullUrl } from "./request.util.js";
 
 /**
  * Compiles a list of routes into a list of compiled routes. Each route is compiled using URLPattern,

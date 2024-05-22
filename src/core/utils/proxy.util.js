@@ -1,7 +1,7 @@
 import { URLPattern } from "urlpattern-polyfill/urlpattern";
 import { RouteError } from "./error.util.js";
 import { ENCODINGS } from "./http.util.js";
-import getFullUrl, { getBodyAsText } from "./request.util.js";
+import { getBodyAsText, getFullUrl } from "./request.util.js";
 import { constructUrlFromPatternAndParams } from "./router.util.js";
 import { getFormData } from "./form.util.js";
 Error.stackTraceLimit = 50;
@@ -131,7 +131,7 @@ export const proxyRoute = (path, proxyUrl, options) => ({
         credentials: req.credentials,
         headers: proxyHeaders
       };
-      if (proxyHeaders.get("content-type")?.includes?.("multipart/form-data") && req.body && !options?.isGraphQL) {
+      if (proxyHeaders.get("content-type")?.includes?.("multipart/form-data") && !options?.isGraphQL) {
         proxyHeaders.delete("content-length");
         proxyHeaders.delete("content-type");
         proxyRequestInit.body = await getFormData(req);

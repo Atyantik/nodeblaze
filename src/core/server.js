@@ -90,7 +90,7 @@ export const run = async (routes, options) => {
 
     // Find route based on request
     const r = findMatchedRoute(req, routes);
-    
+
     // Collect form data
     await getFormData(req);
 
@@ -98,20 +98,25 @@ export const run = async (routes, options) => {
       writeResponse(res, notFoundResponse());
       return;
     }
+
     const requestHeaders = new Headers(req.headers);
     // Respect no-cache
-    const cacheRequest = !requestHeaders.get("cache-control")?.includes?.("no-cache");
+    const cacheRequest = !requestHeaders
+      .get("cache-control")
+      ?.includes?.("no-cache");
 
     let workWithCache = !!(
       // cache is available
-      cache &&
-      // request is allowing cache
-      cacheRequest &&
-      // route is allowing cache
-      r.route?.cache &&
-      // Valid methods are used caching
-      (["GET", "HEAD", "OPTIONS"].includes(req.method.toUpperCase()) ||
-        r.route?.isGraphQL)
+      (
+        cache &&
+        // request is allowing cache
+        cacheRequest &&
+        // route is allowing cache
+        r.route?.cache &&
+        // Valid methods are used caching
+        (["GET", "HEAD", "OPTIONS"].includes(req.method.toUpperCase()) ||
+          r.route?.isGraphQL)
+      )
     );
     /**
      * For graphql, do not cache any request
@@ -136,7 +141,9 @@ export const run = async (routes, options) => {
     // array of acceptable encodings in the request
     const requestAcceptableEncodings = (
       requestHeaders.get("accept-encoding") || ENCODINGS.IDENTITY
-    ).split(",").map((t) => t.trim());
+    )
+      .split(",")
+      .map((t) => t.trim());
 
     try {
       let data;
@@ -147,7 +154,6 @@ export const run = async (routes, options) => {
 
         // If the cache data body is not empty, execute stale while revalidate
         if (data?.body?.length) {
-
           // Revalidate in background
           (async () => {
             try {
@@ -180,7 +186,7 @@ export const run = async (routes, options) => {
       if (!data) {
         const routeData = await r.route.handler(req, r.params);
         data = await convertToCacheableObject(
-          routeData.clone(),
+          routeData instanceof Response ? routeData.clone() : routeData,
           requestAcceptableEncodings
         );
         if (workWithCache) {
@@ -192,14 +198,14 @@ export const run = async (routes, options) => {
               cacheResponseObject(
                 requestId,
                 await convertToCacheableObject(
-                  routeData.clone(),
-                  [ENCODINGS.BROTLI],
-                ),
+                  routeData instanceof Response ? routeData.clone() : routeData,
+                  [ENCODINGS.BROTLI]
+                )
               );
             } catch (ex) {
               console.error(ex);
             } finally {
-              bgRequests.delete(requestId)
+              bgRequests.delete(requestId);
             }
           })();
         }
@@ -230,6 +236,10 @@ export const run = async (routes, options) => {
       return;
     }
   });
+
+  server.timeout = 60000;
+  server.headersTimeout = 0;
+  server.keepAliveTimeout = 60000;
 
   server.listen(options?.port || 3000, options?.hostname || "localhost", () => {
     console.log(

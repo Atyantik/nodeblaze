@@ -29,7 +29,7 @@ export const getFormData = requestMemoize((request) => {
       form.append(fieldname, val);
     });
 
-    busboy.on("finish", () => {
+    busboy.on("close", () => {
       // Now you can use the form data as needed
       resolve(form);
     });

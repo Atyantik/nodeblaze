@@ -1,10 +1,17 @@
 import v8 from 'node:v8';
+import { config as envConfig } from 'dotenv';
 import { routes as rawRoutes } from "./__routes.js";
 import { run } from "./core/server.js";
 import { getCacheInstance, initCacheInstance } from "./core/utils/cache.util.js";
 import { getRequestId } from "./core/utils/http.util.js";
 import { getFreeMemoryInBytes } from "./core/utils/memory.util.js";
 import { compileRoute } from "./core/utils/router.util.js";
+
+/**
+ * Initialize config environment
+ * for .env file support
+ */
+envConfig();
 
 /**
  * Performs garbage collection

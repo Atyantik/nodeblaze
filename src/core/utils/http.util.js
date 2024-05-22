@@ -9,7 +9,7 @@ import {
 } from "./compress.util.js";
 import { hash } from "./hash.util.js";
 import { requestMemoize } from "./memoize.util.js";
-import getFullUrl, { getBodyAsText } from "./request.util.js";
+import { getBodyAsText, getFullUrl } from "./request.util.js";
 
 export const ENCODINGS = {
   BROTLI: "br",
@@ -29,7 +29,7 @@ export const ENCODINGS = {
  *
  * @example
  * // Generate a request ID
- * const reqId = getRequestId(new Request('http://example.com/path'), false);
+ * const reqId = await getRequestId(new Request('http://example.com/path'), false);
  * // returns 'req:<hashed_value_of_the_URL>'
  *
  * @note This function is memoized, so calling it multiple times with the same request
@@ -62,8 +62,9 @@ const getBodyId = async (request) => {
 /**
  * Generates a unique identifier for a given URL. This function processes the URL by sorting its query parameters
  * and optionally prepending a prefix, then hashes the result to create a unique identifier.
- *
+ * 
  * @param {string | URL} url - The URL (or URL string) for which the unique ID is generated.
+ * @param {string} [prefix=''] - An optional prefix added before the URL pathname in the ID generation process.
  * @returns {string} A unique identifier for the URL, prefixed with 'u:'.
  *
  * @example
@@ -76,20 +77,22 @@ const getBodyId = async (request) => {
  * getUrlId(new URL('http://example.com/path?b=2&a=1'), 'prefix-');
  * // returns 'u:<hashed_value_of_prefix-/path?a=1&b=2>'
  */
-export const getUrlId = (url) => {
-  const urlObj = new URL(url);
+export const getUrlId = (url, prefix = '') => {
+	const urlObj = new URL(url);
 
-  // Sort the search parameters by their keys
-  urlObj.search = new URLSearchParams(
-    Array.from(urlObj.searchParams).sort((a, b) => a[0].localeCompare(b[0]))
-  ).toString();
+	// Sort the search parameters by their keys
+	urlObj.search = new URLSearchParams(
+		Array.from(urlObj.searchParams).sort((a, b) => a[0].localeCompare(b[0])),
+	).toString();
 
-  // Construct the URL with sorted search parameters
-  const exceptHost = urlObj.pathname + (urlObj.search ? urlObj.search : "");
+	// Construct the URL with sorted search parameters
+	const exceptHost = prefix
+		+ urlObj.pathname
+		+ (urlObj.search ? urlObj.search : "");
 
-  const uniqueUrlKey = hash(exceptHost);
+	const uniqueUrlKey = hash(exceptHost);
 
-  return `u:${uniqueUrlKey}`;
+	return `u:${uniqueUrlKey}`;
 };
 
 /**

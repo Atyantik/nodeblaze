@@ -2,9 +2,7 @@ import { URL } from 'node:url';
 import { IncomingMessage } from 'node:http';
 import { requestMemoize } from './memoize.util.js';
 
-export const getBodyAsText = requestMemoize(async (req) => {
-  return collectRequestBody(req);
-});
+export const getBodyAsText = requestMemoize(collectRequestBody);
 
 async function collectRequestBody(req) {
   return new Promise((resolve, reject) => {
@@ -51,7 +49,7 @@ async function collectRequestBody(req) {
  * @param {http.IncomingMessage} req - The HTTP request object.
  * @returns {string} The full URL.
  */
-function getFullUrl(req) {
+export const getFullUrl = requestMemoize((req) => {
   // Extract the protocol from X-Forwarded-Proto or fall back to the request connection encryption state
   const protocol = req.headers['x-forwarded-proto'] || (req?.connection?.encrypted ? 'https' : 'http');
   
@@ -62,6 +60,4 @@ function getFullUrl(req) {
   const fullUrl = new URL(req.url, `${protocol}://${host}`);
 
   return fullUrl.href;
-}
-
-export default getFullUrl;
+});
